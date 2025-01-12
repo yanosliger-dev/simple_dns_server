@@ -1,0 +1,6 @@
+---
+- name: Install bind packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ simple_dns_server_bind_packages }}"

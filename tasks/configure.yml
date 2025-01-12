@@ -1,0 +1,77 @@
+---
+- name: Configure bind to only use ipv4
+  ansible.builtin.template:
+    src: default.named.j2
+    dest: /etc/default/named
+    mode: "0644"
+
+- name: Setup trusted recursive list
+  ansible.builtin.template:
+    src: named.conf.options.j2
+    dest: /etc/bind/named.conf.options
+    mode: "0644"
+    owner: bind
+    group: bind
+
+- name: Setup pointers to forward and reverse zones
+  ansible.builtin.template:
+    src: named.conf.local.j2
+    dest: /etc/bind/named.conf.local
+    mode: "0644"
+    owner: bind
+    group: bind
+
+- name: Create our directories for zone files
+  ansible.builtin.file:
+    dest: /etc/bind/zones
+    state: directory
+    owner: bind
+    group: bind
+    mode: "0774"
+
+- name: Create our directories for log files
+  ansible.builtin.file:
+    dest: /var/log/bind
+    state: directory
+    owner: bind
+    group: bind
+    mode: "0775"
+
+- name: Deploy app armor profile for bind
+  ansible.builtin.template:
+    src: usr.sbin.named.j2
+    dest: "/etc/apparmor.d/local/usr.sbin.named"
+    owner: root
+    group: root
+    mode: "0644"
+  register: updated_app_armor
+
+- name: debug apparmor output
+  ansible.builtin.debug:
+    var: updated_app_armor
+    verbosity: 2
+
+- name: Reload the app armor parser for named
+  ansible.builtin.command: apparmor_parser -r /etc/apparmor.d/usr.sbin.named # noqa command-instead-of-module
+  changed_when: updated_app_armor.changed
+  notify: Reload Services
+
+- name: Create our Forward Zones
+  ansible.builtin.template:
+    src: forward_zones.j2
+    dest: "/etc/bind/zones/db.{{ item.name }}"
+    mode: "0774"
+    owner: bind
+    group: bind
+  loop: "{{ dns_zones }}"
+  notify: Reload Bind9
+
+- name: Create our Reverse Zones
+  ansible.builtin.template:
+    src: reverse_zones.j2
+    dest: "/etc/bind/zones/db.{{ item.inaddr }}.in-addr.arpa"
+    mode: "0774"
+    owner: bind
+    group: bind
+  loop: "{{ dns_zones }}"
+  notify: Reload Bind9

@@ -1,0 +1,18 @@
+---
+simple_dns_server_bind_log_directory: /var/log/bind
+simple_dns_server_bind_zones_directory: /etc/bind/zones
+simple_dns_server_bind_packages:
+  - bind9
+  - bind9utils
+  - bind9-doc
+
+simple_dns_server_bind_delete_zones: true
+simple_dns_server_bind_backup_zones: true
+# default forwards for the internets
+simple_dns_server_bind_forwarders:
+  - 8.8.8.8
+  - 1.1.1.1
+# default trusted local servers
+simple_dns_server_trusted_bind_servers:
+  - localhost
+  - localnets

@@ -1,0 +1,20 @@
+; base zone file for {{ item.name }}
+; {{ ansible_managed }}
+$TTL {{ item.ttl }}    ; default TTL for zone
+$ORIGIN {{ item.inaddr }}.IN-ADDR.ARPA.
+; Start of Authority RR defining the key characteristics of the zone (domain)
+@         IN      SOA   {{ inventory_hostname }}. {{ item.email_notify }}.{{ item.name }}. (
+                                {{ item.serial }} ; serial number
+                                12h        ; refresh
+                                15m        ; update retry
+                                3w         ; expiry
+                                2h         ; minimum
+                                )
+; DNS SERVERS
+           IN      NS     {{ groups['dns_master'][0] }}.
+           IN      NS     {{ groups['dns_slave'][0] }}.
+
+; A RECORDS
+{% for entry in item.a_records %}
+{{ entry.ip.split('.')[-1][-2:] }}      IN      PTR {{ entry.suffix }}.{{ item.name }}.
+{% endfor %}

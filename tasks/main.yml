@@ -1,0 +1,12 @@
+---
+- name: Include install
+  ansible.builtin.import_tasks: install.yml
+  tags:
+    - install
+    - all
+
+- name: Include configure
+  ansible.builtin.import_tasks: configure.yml
+  tags:
+    - config
+    - all

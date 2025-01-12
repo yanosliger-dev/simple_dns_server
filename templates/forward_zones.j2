@@ -1,0 +1,42 @@
+; base zone file for {{ item.name }}
+; {{ ansible_managed }}
+$TTL {{ item.ttl }}    ; default TTL for zone
+$ORIGIN {{ item.name }}. ; base domain-name
+; Start of Authority RR defining the key characteristics of the zone (domain)
+@         IN      SOA   {{ inventory_hostname }}. {{ item.email_notify }}.{{ item.name }}. (
+                                {{ item.serial }} ; serial number
+                                12h        ; refresh
+                                15m        ; update retry
+                                3w         ; expiry
+                                2h         ; minimum
+                                )
+; DNS SERVERS
+           IN      NS     {{ groups['dns_master'][0] }}.
+           IN      NS     {{ groups['dns_slave'][0] }}.
+
+; MAIL SERVERS
+        3w IN      MX  10  mail.{{ item.name }}.
+           IN      MX  20  mail.{{ item.name }}.
+
+; A RECORDS
+ns1        IN      A       {{ hostvars[groups['dns_master'][0]].ansible_host }}
+ns2        IN      A       {{ hostvars[groups['dns_slave'][0]].ansible_host }}
+{% if item.a_records is defined %}
+{% for entry in item.a_records %}
+{{ entry.suffix }}      IN      A {{ entry.ip }}
+{% endfor %}
+{% endif %}
+
+; CNAMES
+{% if item.cname_records is defined %}
+{% for entry in item.cname_records %}
+{{ entry.host }}      IN      CNAME {{ entry.address }}
+{% endfor %}
+{% endif %}
+
+; TEXT
+{% if item.text_records is defined %}
+{% for entry in item.text_records %}
+{{ entry.host }}      IN      TXT {{ entry.text }}
+{% endfor %}
+{% endif %}

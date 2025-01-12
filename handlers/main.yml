@@ -1,0 +1,11 @@
+---
+- name: Reload AppArmor Service
+  ansible.builtin.systemd:
+    name: apparmor
+    state: reloaded
+  listen: Reload Services
+- name: Reload Bind9
+  ansible.builtin.systemd:
+    name: bind9
+    state: reloaded
+  listen: Reload Services

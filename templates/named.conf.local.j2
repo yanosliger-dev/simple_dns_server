@@ -1,0 +1,15 @@
+// {{ ansible_managed }}
+{% for zone in dns_zones %}
+zone "{{ zone.name }}" {
+    type {{ zone.type }};
+    file "/etc/bind/zones/db.{{ zone.name }}";
+    allow-transfer { {{ bind_slave }}; };
+};
+{% endfor %}
+{% for zone in dns_zones %}
+zone "{{ zone.inaddr }}.in-addr.arpa" {
+    type {{ zone.type }};
+    file "/etc/bind/zones/db.{{ zone.inaddr }}.in-addr.arpa";
+    allow-transfer { {{ bind_slave }}; };
+};
+{% endfor %}
